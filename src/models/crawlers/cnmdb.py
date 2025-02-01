@@ -140,7 +140,8 @@ def main(number, appoint_url="", log_info="", req_web="", language="zh_cn", file
                 for each in filename_list:
                     if len(each) < 5 or "传媒" in each or "麻豆" in each:
                         continue
-                    search_url = f"https://cnmdb.net/s0?q={each}"
+                        
+                    search_url = f"https://cnmdb.net/search/keyword-{each}.html"
                     debug_info = f"请求地址: {search_url} "
                     log_info += web_info + debug_info
                     result, response = get_html(search_url, keep=False)
