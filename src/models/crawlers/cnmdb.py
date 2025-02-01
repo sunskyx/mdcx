@@ -1,20 +1,12 @@
-#!/usr/bin/env python3
 import json
 import re
 import time
+import os
 from urllib.parse import unquote
-
-import urllib3
 from lxml import etree
-
-from models.base.web import get_html
-from models.crawlers.guochan import get_number_list
+import urllib3
 
 urllib3.disable_warnings()  # yapf: disable
-
-
-# import traceback
-
 
 def get_actor_photo(actor):
     actor = actor.split(",")
@@ -23,7 +15,6 @@ def get_actor_photo(actor):
         actor_photo = {i: ""}
         data.update(actor_photo)
     return data
-
 
 def get_detail_info(html, real_url):
     number = unquote(real_url.split("/")[-1])
@@ -40,7 +31,6 @@ def get_detail_info(html, real_url):
         cover = cover[0] if cover else ""
         return True, number, title, actor, real_url, cover, studio, series
     return False, "", "", "", "", "", "", ""
-
 
 def get_search_info(html, number_list):
     item_list = html.xpath('//div[@class="post-item"]')
@@ -63,7 +53,6 @@ def get_search_info(html, number_list):
                     title, number, actor, series = get_actor_title(title[0], number, studio)
                     return True, number, title, actor, real_url, cover, studio, series
     return False, "", "", "", "", "", "", ""
-
 
 def get_actor_title(title, number, studio):
     temp_list = re.split(r"[\., ]", title.replace("/", "."))
@@ -92,7 +81,6 @@ def get_actor_title(title, number, studio):
         new_title += "." + temp_list[i]
     title = new_title if new_title else title
     return title.strip("."), number, ",".join(actor_list), series
-
 
 def main(number, appoint_url="", log_info="", req_web="", language="zh_cn", file_path="", appoint_number=""):
     start_time = time.time()
@@ -136,7 +124,9 @@ def main(number, appoint_url="", log_info="", req_web="", language="zh_cn", file
                     )
                     break
             else:
-                filename_list = re.split(r"[\.,，]", file_path)
+                # 提取文件名
+                filename_list = [os.path.basename(file) for file in filename_list]
+                
                 for each in filename_list:
                     if len(each) < 5 or "传媒" in each or "麻豆" in each:
                         continue
@@ -192,12 +182,7 @@ def main(number, appoint_url="", log_info="", req_web="", language="zh_cn", file
                 "log_info": log_info,
                 "error_info": "",
                 "req_web": req_web
-                + "(%ss) "
-                % (
-                    round(
-                        (time.time() - start_time),
-                    )
-                ),
+                + "-> %s(%ss) " % (website_name, round(time.time() - start_time)),
                 "mosaic": "国产",
                 "wanted": "",
             }
@@ -219,12 +204,7 @@ def main(number, appoint_url="", log_info="", req_web="", language="zh_cn", file
             "log_info": log_info,
             "error_info": debug_info,
             "req_web": req_web
-            + "(%ss) "
-            % (
-                round(
-                    (time.time() - start_time),
-                )
-            ),
+            + "-> %s(%ss) " % (website_name, round(time.time() - start_time)),
         }
     dic = {website_name: {"zh_cn": dic, "zh_tw": dic, "jp": dic}}
     js = json.dumps(
@@ -235,7 +215,6 @@ def main(number, appoint_url="", log_info="", req_web="", language="zh_cn", file
         separators=(",", ": "),
     )
     return js
-
 
 if __name__ == "__main__":
     print(main('XSJ138.2.2.',file_path='XSJ138.2.3.4'))  
